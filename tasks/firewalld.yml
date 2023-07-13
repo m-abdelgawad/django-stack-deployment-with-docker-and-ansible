@@ -1,0 +1,51 @@
+---
+- name: Start firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Enable firewalld
+  firewalld:
+    state: enabled
+  register: firewalld_enabled  # Register the variable to track changes
+
+- name: Allow SSH (Port 22)
+  firewalld:
+    service: ssh
+    permanent: yes  # Apply the rule permanently
+    immediate: yes  # Apply the rule immediately
+    state: enabled
+  register: allowed_ssh  # Register the variable to track changes
+
+- name: Allow HTTP (Port 80)
+  firewalld:
+    port: 80/tcp
+    permanent: yes  # Apply the rule permanently
+    immediate: yes  # Apply the rule immediately
+    state: disabled
+  register: allowed_http  # Register the variable to track changes
+
+- name: Allow HTTPS (Port 443)
+  firewalld:
+    port: 443/tcp
+    permanent: yes  # Apply the rule permanently
+    immediate: yes  # Apply the rule immediately
+    state: enabled
+  register: allowed_https  # Register the variable to track changes
+
+- name: Disable IPv6 in firewalld
+  lineinfile:
+    path: /etc/sysconfig/network
+    line: 'NETWORKING_IPV6=no'
+    regexp: '^NETWORKING_IPV6='
+    state: present
+  register: ipv6_disabled  # Register the variable to track changes
+  changed_when: ipv6_disabled.changed  # Mark the task as changed when the IPv6 configuration is modified
+
+- name: Reload firewalld
+  systemd:
+    name: firewalld
+    state: restarted
+  when: firewalld_enabled.changed or allowed_ssh.changed or allowed_http.changed or allowed_https.changed or ipv6_disabled.changed or denied_incoming.changed
+...

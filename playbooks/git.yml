@@ -1,0 +1,16 @@
+---
+- name: Set Git Configurations
+  hosts: [servers]
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/global.yml
+    - ../vars/secrets.yml
+  tasks:
+    - name: Set user.email Git configuration
+      command: runuser -l {{ sudo_username }} -c 'git config --global user.email "{{ git_author_email }}"'
+
+    - name: Set user.name Git configuration
+      command: runuser -l {{ sudo_username }} -c 'git config --global user.name "{{ git_author_name }}"'
+...

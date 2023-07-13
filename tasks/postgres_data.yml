@@ -1,0 +1,38 @@
+---
+- name: Check if postgres_data folder exists
+  stat:
+    path: "{{ repo_dest }}/mounts/postgres_data"
+  register: postgres_data_folder
+
+- name: Find the latest PostgreSQL data archive file
+  find:
+    paths: "{{ repo_dest }}/postgres_backups/"
+    patterns: "automagic_postgres_data_*.tar.gz"
+  register: latest_archive_file
+  changed_when: false
+  failed_when: false
+
+- name: Create postgres_data folder if it doesn't exist
+  file:
+    path: "{{ repo_dest }}/mounts/postgres_data"
+    state: directory
+  when:
+    - not postgres_data_folder.stat.exists
+
+- name: Check if postgres_data folder is empty
+  find:
+    paths: "{{ repo_dest }}/mounts/postgres_data"
+  register: postgres_data_files
+  changed_when: false
+  failed_when: false
+
+- name: Extract latest PostgreSQL data archive
+  unarchive:
+    src: "{{ latest_archive_file.files[0].path }}"
+    dest: "{{ repo_dest }}/mounts"
+    remote_src: yes
+  when:
+    - postgres_data_files.files | length == 0
+    - latest_archive_file is defined
+    - latest_archive_file.files | length > 0
+...

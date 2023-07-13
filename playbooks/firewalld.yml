@@ -1,0 +1,68 @@
+---
+- name: Enable And Configure The Firewalld Firewall For yum-based distributions
+  hosts: [servers]
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/global.yml
+  tasks:
+    - name: Start firewalld service
+      when: ansible_distribution in yum_distributions
+      service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Enable firewalld
+      when: ansible_distribution in yum_distributions
+      firewalld:
+        state: enabled
+
+    - name: Allow SSH (Port 22)
+      when: ansible_distribution in yum_distributions
+      firewalld:
+        service: ssh
+        permanent: yes  # Apply the rule permanently
+        immediate: yes  # Apply the rule immediately
+        state: enabled
+      notify:
+        - Reload firewalld
+
+    - name: Allow HTTP (Port 80)
+      when: ansible_distribution in yum_distributions
+      firewalld:
+        port: 80/tcp
+        permanent: yes  # Apply the rule permanently
+        immediate: yes  # Apply the rule immediately
+        state: disabled
+      notify:
+        - Reload firewalld
+
+    - name: Allow HTTPS (Port 443)
+      when: ansible_distribution in yum_distributions
+      firewalld:
+        port: 443/tcp
+        permanent: yes  # Apply the rule permanently
+        immediate: yes  # Apply the rule immediately
+        state: enabled
+      notify:
+        - Reload firewalld
+
+    - name: Disable IPv6 in firewalld
+      when: ansible_distribution in yum_distributions
+      lineinfile:
+        path: /etc/sysconfig/network
+        line: 'NETWORKING_IPV6=no'
+        regexp: '^NETWORKING_IPV6='
+        state: present
+      notify:
+        - Reload firewalld
+
+  handlers:
+    - name: Reload firewalld
+      systemd:
+        name: firewalld
+        state: restarted
+...

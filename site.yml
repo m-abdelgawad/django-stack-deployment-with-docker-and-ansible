@@ -1,0 +1,63 @@
+---
+- name: Deploy Automagic Developer Website on a New Host
+  hosts: [servers]
+  gather_facts: true
+  become: true
+  become_user: root
+  vars:
+    ansible_user: root
+  vars_files:
+    - vars/secrets.yml
+    - vars/global.yml
+  pre_tasks:
+    - name: Print system distribution and version
+      include_tasks: tasks/system_info.yml
+
+    - name: Install prerequisite packages
+      import_tasks: tasks/packages.yml
+
+    - name: Upgrade all packages
+      import_tasks: tasks/upgrade_packages.yml
+
+    - name: Perform system restart if required
+      import_tasks: tasks/restart_system.yml
+
+    - name: Create sudo user
+      include_tasks: tasks/sudo_user.yml
+
+    #- name: Setup firewall and enable HTTPS only for apt-based distributions
+    #  when: ansible_distribution in apt_distributions
+    #  import_tasks: tasks/ufw_firewall.yml
+
+    #- name: Setup firewall and enable HTTPS only for yum-based distributions
+    #  when: ansible_distribution in yum_distributions
+    #  import_tasks: tasks/firewalld.yml
+
+  roles:
+    - roles/firewall-role
+
+  tasks:
+    - name: Transfer SSH key pair
+      import_tasks: tasks/transfer_ssh_pair.yml
+
+    - name: Configure passwordless root access
+      import_tasks: tasks/passwordless_root_access.yml
+
+    - name: Configure Git
+      import_tasks: tasks/git.yml
+
+    - name: Pull Automagic Docker Stack Repo
+      import_tasks: tasks/pull_automagic_stack_repo.yml
+
+    - name: Pull Ansible Repo
+      import_tasks: tasks/pull_ansible_repo.yml
+
+    - name: Update Nginx configurations for non-HQ sites
+      import_tasks: tasks/update_nginx_config.yml
+
+    - name: Prepare database data
+      import_tasks: tasks/postgres_data.yml
+
+    - name: Power on the stack
+      import_tasks: tasks/docker_compose_up.yml
+...

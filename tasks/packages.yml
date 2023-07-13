@@ -1,0 +1,67 @@
+---
+- name: Install prerequisites packages for apt-based distributions
+  when: ansible_distribution in apt_distributions
+  apt:
+    name:
+      - apt-utils
+      - python3-venv
+      - python3-dev
+      - libpq-dev
+      - git
+      - docker.io
+      - ansible
+      - curl
+      - nano
+      - whois
+      - tree
+    state: present
+    update_cache: yes
+
+- name: Enable Ansible repository for yum-based distributions
+  when: ansible_distribution in yum_distributions
+  command: subscription-manager repos --enable ansible-2.9-for-rhel-8-x86_64-rpms
+
+- name: Add Docker repository for yum-based distributions
+  when: ansible_distribution in yum_distributions
+  command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install prerequisites packages for yum-based distributions
+  when: ansible_distribution in yum_distributions
+  yum:
+    name:
+      - yum-utils
+      - python3.11*
+      - git
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - nano
+      - curl
+      - ansible
+      - expect
+      - whois
+      - firewalld
+      - tree
+    state: present
+
+- name: Install Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}"  # Use appropriate variables to construct the URL based on the target system
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x'
+  register: install_output
+  changed_when: install_output.changed
+
+- name: Set execute permissions on Docker Compose
+  file:
+    path: /usr/local/bin/docker-compose
+    mode: '+x'
+
+- name: Start Docker service
+  service:
+    name: docker
+    enabled: yes
+    state: started
+...

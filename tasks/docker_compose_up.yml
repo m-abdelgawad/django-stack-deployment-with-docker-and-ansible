@@ -1,0 +1,28 @@
+---
+- name: Check if any containers are running
+  shell: docker ps --filter "status=running" --format "{{'{{.ID}}'}}" | wc -l
+  register: running_containers
+
+- debug:
+    msg: "Running Containers Count: {{ running_containers.stdout }}"
+
+- name: Restart Docker service if the number of running containers is ZERO
+  when: running_containers.stdout | int == 0
+  service:
+    name: docker
+    enabled: yes
+    state: restarted
+
+- name: Bring up Docker Compose stack if the number of running containers is less than {{ stack_containers_count }}
+  when: running_containers.stdout | int < stack_containers_count
+  command: /usr/local/bin/docker-compose up --build -d
+  args:
+    chdir: "{{ repo_dest }}"
+
+- name: Count current running containers
+  shell: docker ps --filter "status=running" --format "{{'{{.ID}}'}}" | wc -l
+  register: running_containers
+
+- debug:
+    msg: "Number of running containers: {{ running_containers.stdout }}"
+...

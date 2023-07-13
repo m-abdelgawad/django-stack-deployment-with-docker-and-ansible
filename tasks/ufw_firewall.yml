@@ -1,0 +1,44 @@
+---
+- name: Enable UFW firewall
+  ufw:
+    state: enabled
+  register: ufw_enabled
+
+- name: Allow SSH (Port 22)
+  ufw:
+    port: '22'
+    rule: allow
+  register: allowed_ssh
+
+- name: Allow HTTP (Port 80)
+  ufw:
+    port: '80'
+    rule: allow
+  register: allowed_http
+
+- name: Allow HTTPS (Port 443)
+  ufw:
+    port: '443'
+    rule: allow
+  register: allowed_https
+
+- name: Disable IPv6 in UFW
+  lineinfile:
+    path: /etc/default/ufw
+    line: 'IPV6=no'
+    regexp: '^IPV6='
+    state: present
+  register: ipv6_disabled
+  changed_when: ipv6_disabled.changed
+
+- name: UFW - Deny all other incoming traffic by default
+  ufw:
+    policy: deny
+    direction: incoming
+  register: denied_incoming
+
+- name: Reload UFW
+  ufw:
+    state: reloaded
+  when: ufw_enabled.changed or allowed_ssh.changed or allowed_http.changed or allowed_https.changed or ipv6_disabled.changed or denied_incoming.changed
+...

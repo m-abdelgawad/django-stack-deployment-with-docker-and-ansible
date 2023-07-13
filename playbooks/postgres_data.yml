@@ -1,0 +1,43 @@
+---
+- name: Extract The Postgres Database Data in the mounted directory of The Docker Stack.
+  hosts: [servers]
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/global.yml
+  tasks:
+    - name: Check If The Postgres Data Directory Exists At "{{ repo_dest }}/mounts/postgres_data"
+      stat:
+        path: "{{ repo_dest }}/mounts/postgres_data"
+      register: postgres_data_folder
+
+    - name: Create postgres_data folder if it doesn't exist
+      when: not postgres_data_folder.stat.exists
+      file:
+        path: "{{ repo_dest }}/mounts/postgres_data"
+        state: directory
+
+    - name: Find the latest PostgreSQL data archive file inside "{{ repo_dest }}/postgres_backups/"
+      find:
+        paths: "{{ repo_dest }}/postgres_backups/"
+        patterns: "automagic_postgres_data_*.tar.gz"
+      register: latest_archive_file
+
+    - name: Check if Postgres Data Directory is empty
+      find:
+        paths: "{{ repo_dest }}/mounts/postgres_data"
+      register: postgres_data_files
+
+    - name: Extract latest PostgreSQL data archive
+      when:
+        - latest_archive_file is defined
+        - postgres_data_files.files | length == 0
+      unarchive:
+        src: "{{ latest_archive_file.files[0].path }}"
+        dest: "{{ repo_dest }}/mounts"
+        remote_src: yes
+...
+

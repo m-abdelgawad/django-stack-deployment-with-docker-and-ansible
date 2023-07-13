@@ -1,0 +1,3 @@
+[servers]
+Ubuntu ansible_host=137.184.79.57
+RHEL ansible_host=143.244.212.160

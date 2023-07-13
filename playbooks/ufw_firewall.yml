@@ -1,0 +1,64 @@
+---
+- name: Enable And Configure The UFW Firewall For Apt-Based Distributions
+  hosts: [servers]
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/global.yml
+  tasks:
+    - name: Enable UFW firewall
+      when: ansible_distribution in apt_distributions
+      ufw:
+        state: enabled
+      notify:
+        - Reload UFW
+
+    - name: Allow SSH (Port 22)
+      when: ansible_distribution in apt_distributions
+      ufw:
+        port: '22'
+        rule: allow
+      notify:
+        - Reload UFW
+
+    - name: Allow HTTP (Port 80)
+      when: ansible_distribution in apt_distributions
+      ufw:
+        port: '80'
+        rule: allow
+      notify:
+        - Reload UFW
+
+    - name: Allow HTTPS (Port 443)
+      when: ansible_distribution in apt_distributions
+      ufw:
+        port: '443'
+        rule: allow
+      notify:
+        - Reload UFW
+
+    - name: Disable IPv6 in UFW
+      when: ansible_distribution in apt_distributions
+      lineinfile:
+        path: /etc/default/ufw
+        line: 'IPV6=no'
+        regexp: '^IPV6='
+        state: present
+      notify:
+        - Reload UFW
+
+    - name: UFW - Deny all other incoming traffic by default
+      when: ansible_distribution in apt_distributions
+      ufw:
+        policy: deny
+        direction: incoming
+      notify:
+        - Reload UFW
+
+  handlers:
+    - name: Reload UFW
+      ufw:
+        state: reloaded
+...

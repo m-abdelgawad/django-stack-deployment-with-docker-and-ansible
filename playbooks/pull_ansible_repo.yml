@@ -1,0 +1,43 @@
+---
+- name: Pull "AutoMagic Deployment" Repo From GitHub
+  hosts: [servers]
+  gather_facts: no
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/global.yml
+  tasks:
+    - name: Check if the AutoMagic Deployment Repo Directory exists
+      stat:
+        path: "{{ ansible_repo_dest }}"
+      register: repo_dest_status
+
+    - name: Clone or pull the AutoMagic Deployment Repo if it doesn't already exists
+      when: not repo_dest_status.stat.exists
+      git:
+        repo: "{{ ansible_repo_url }}"
+        dest: "{{ ansible_repo_dest }}"
+        version: main
+        accept_hostkey: yes
+        key_file: "/home/{{ sudo_username }}/.ssh/id_rsa"
+        force: yes
+      register: pulled_repo
+      notify:
+        - Set safe.directory exception for the AutoMagic Deployment repository directory
+
+    - name: Change owner and group owner of the AutoMagic Deployment repository directory and its contents
+      when: pulled_repo.changed
+      file:
+        path: "{{ ansible_repo_dest }}"
+        state: directory
+        recurse: yes
+        owner: "{{ sudo_username }}"
+        group: "{{ sudo_username }}"
+        follow: yes
+
+  handlers:
+    - name: Set safe.directory exception for the AutoMagic Deployment repository directory
+      command: git config --global --add safe.directory "{{ ansible_repo_dest }}"
+...

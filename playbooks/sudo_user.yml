@@ -1,0 +1,54 @@
+---
+- name: Create Sudo User
+  hosts: [servers]
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/global.yml
+    - ../vars/secrets.yml
+  tasks:
+    - name: Make sure that the wheel group exists
+      group:
+        name: wheel
+        state: present
+
+    - name: Allow the wheel group to have passwordless sudo
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Encrypt the new sudo password and register it in a variable for apt-based distributions
+      when: ansible_distribution in apt_distributions
+      command: mkpasswd --method=SHA-512 --rounds=4096 "{{ sudo_password }}"
+      register: encry_sudo_password
+      changed_when: false
+
+    - name: Create a new user <<{{ sudo_username }}>> with the encrypted password and add it to the wheel and docker groups for apt-based distributions
+      when: ansible_distribution in apt_distributions
+      user:
+        name: "{{ sudo_username }}"
+        password: "{{ encry_sudo_password.stdout }}"
+        state: present
+        groups: wheel, docker
+        append: true
+        create_home: true
+        shell: /bin/bash
+        password_lock: false
+
+    - name: Create a new user <<{{ sudo_username }}>> with the encrypted password and add it to the wheel and docker groups for yum-based distributions
+      when: ansible_distribution in yum_distributions
+      user:
+        name: "{{ sudo_username }}"
+        password: "{{ sudo_password | password_hash('sha512') }}"
+        state: present
+        groups: wheel, docker
+        append: true
+        create_home: true
+        shell: /bin/bash
+        password_lock: false
+...

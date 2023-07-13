@@ -1,0 +1,20 @@
+upstream website-nginx-server {
+  server app:8000; # website is the name of the container in the docker-compose.yml
+}
+
+server {
+  listen 80;
+  server_name {{ ansible_default_ipv4.address }};
+
+  location / {
+    proxy_pass http://website-nginx-server;
+  }
+
+  location /static/ {
+    alias /static/;
+  }
+
+  location /media/ {
+    alias /media/;
+  }
+}

@@ -1,0 +1,31 @@
+---
+- import_playbook: system_info.yml
+
+- import_playbook: packages.yml
+
+- import_playbook: upgrade_packages.yml
+
+- import_playbook: restart_system.yml
+
+- import_playbook: sudo_user.yml
+
+#- import_playbook: ufw_firewall.yml
+#- import_playbook: firewalld.yml
+- import_playbook: configure_firewall.yml
+
+- import_playbook: transfer_ssh_pair.yml
+
+- import_playbook: passwordless_root_access.yml
+
+- import_playbook: git.yml
+
+- import_playbook: pull_automagic_stack_repo.yml
+
+- import_playbook: pull_ansible_repo.yml
+
+- import_playbook: update_nginx_config.yml
+
+- import_playbook: postgres_data.yml
+
+- import_playbook: docker_compose_up.yml
+...

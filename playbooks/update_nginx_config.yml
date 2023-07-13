@@ -1,0 +1,40 @@
+---
+- name: Update Nginx configurations for all hosts except for the HQ server.
+  hosts: [servers]
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/global.yml
+
+  tasks:
+
+    - name: Check If The Host IP Matches HQ Host IP
+      set_fact:
+        is_domain_hq_ip: "{{ ansible_ssh_host == domain_hq_ip }}"
+
+    - debug:
+        msg: "Ansible SSH Host IP: {{ ansible_ssh_host }}. Domain HQ IP: {{ domain_hq_ip }}. Boolean: {{ is_domain_hq_ip }}."
+
+    - name: Remove generate_certificate.sh file if it exists For Non-HQ hosts
+      when: not is_domain_hq_ip | bool
+      file:
+        path: "{{ repo_dest }}/nginx/generate_certificate.sh"
+        state: absent
+
+    - name: Update default.conf file For Non-HQ hosts
+      when: not is_domain_hq_ip | bool
+      template:
+        src: ../templates/default.conf.j2
+        dest: "{{ repo_dest }}/nginx/default.conf"
+
+    - name: Update Dockerfile For Non-HQ hosts
+      when: not is_domain_hq_ip | bool
+      copy:
+        content: |
+          FROM nginx:latest
+          COPY ./default.conf /etc/nginx/conf.d/default.conf
+        dest: "{{ repo_dest }}/nginx/Dockerfile"
+...

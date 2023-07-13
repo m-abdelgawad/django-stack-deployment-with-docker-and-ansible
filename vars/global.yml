@@ -1,0 +1,23 @@
+repo_dest: /home/{{ sudo_username }}/automagic-docker-stack
+repo_url: git@github.com:m-abdelgawad/automagic-docker-stack.git
+
+ansible_repo_dest: /home/{{ sudo_username }}/automagic-deployment
+ansible_repo_url: git@github.com:m-abdelgawad/automagic-deployment.git
+
+git_author_name: Mohamed AbdelGawad
+git_author_email: muhammadabdelgawwad@gmail.com
+
+nginx_private_key: /etc/letsencrypt/live/automagicdeveloper.com/privkey.pem
+nginx_full_chain: /etc/letsencrypt/live/automagicdeveloper.com/fullchain.pem
+
+certificate_email: muhammadabdelgawwad@gmail.com
+
+stack_containers_count: 4
+
+apt_distributions:
+  - Ubuntu
+  - Debian
+
+yum_distributions:
+  - CentOS
+  - RedHat
