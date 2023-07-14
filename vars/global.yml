@@ -1,8 +1,8 @@
 repo_dest: /home/{{ sudo_username }}/automagic-docker-stack
 repo_url: git@github.com:m-abdelgawad/automagic-docker-stack.git
 
-ansible_repo_dest: /home/{{ sudo_username }}/automagic-deployment
-ansible_repo_url: git@github.com:m-abdelgawad/automagic-deployment.git
+ansible_repo_dest: /home/{{ sudo_username }}/django-stack-deployment-with-docker-and-ansible
+ansible_repo_url: git@github.com:m-abdelgawad/django-stack-deployment-with-docker-and-ansible.git
 
 git_author_name: Mohamed AbdelGawad
 git_author_email: muhammadabdelgawwad@gmail.com
