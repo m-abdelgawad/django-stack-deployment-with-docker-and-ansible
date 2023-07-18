@@ -1,2 +1,2 @@
 [servers]
-Localhost ansible_host=localhost
+Localhost ansible_host=143.244.212.160
