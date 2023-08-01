@@ -24,6 +24,7 @@
           - nano
           - whois
           - tree
+          - p7zip-full
         state: present
         update_cache: yes
 
