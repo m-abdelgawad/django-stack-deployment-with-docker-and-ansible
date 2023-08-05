@@ -34,7 +34,7 @@
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
-    <li><a href="#Preview Video">Preview Video</a></li>
+    <li><a href="#preview-video">Preview Video</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
